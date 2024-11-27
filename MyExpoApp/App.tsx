@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {  StyleSheet, Text, View,TouchableOpacity} from 'react-native';
-import {  CameraType, CameraView, useCameraPermissions } from 'expo-camera';
+import { StyleSheet, Text, View, TouchableOpacity, Dimensions } from 'react-native';
+import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import * as tf from '@tensorflow/tfjs';
 import * as cocoSsd from '@tensorflow-models/coco-ssd';
+import Svg, { Rect, Text as SvgText } from 'react-native-svg';
 
 export default function App() {
   const [model, setModel] = useState<cocoSsd.ObjectDetection | null>(null);
@@ -10,6 +11,9 @@ export default function App() {
   const [facing, setFacing] = useState<CameraType>('back');
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<any>(null);
+
+  const screenWidth = Dimensions.get('window').width;
+  const screenHeight = Dimensions.get('window').height;
 
   useEffect(() => {
     (async () => {
@@ -30,7 +34,6 @@ export default function App() {
         image.src = photo.uri;
 
         image.onload = async () => {
-
           const canvas = document.createElement('canvas');
           canvas.width = image.width;
           canvas.height = image.height;
@@ -38,14 +41,12 @@ export default function App() {
           if (!ctx) throw new Error('Canvas context could not be created');
           ctx.drawImage(image, 0, 0);
 
+          const imageTensor = tf.browser.fromPixels(canvas);
 
-        const imageTensor = tf.browser.fromPixels(canvas);
-
-        const predictions = await model.detect(imageTensor);
-        setPredictions(predictions);
-
-        console.log('Detected objects:', predictions);
-      };
+          const predictions = await model.detect(imageTensor);
+          setPredictions(predictions);
+          console.log('Detected objects:', predictions);
+        };
       } catch (error) {
         console.error('Error during detection:', error);
       }
@@ -59,6 +60,34 @@ export default function App() {
   return (
     <View style={styles.container}>
       <CameraView ref={cameraRef} style={styles.camera} facing={facing}>
+        <Svg style={styles.overlay}>
+          {predictions.map((prediction, index) => {
+            const [x, y, width, height] = prediction.bbox;
+
+            return (
+              <React.Fragment key={index}>
+                <Rect
+                  x={(x / 640) * screenWidth}
+                  y={(y / 480) * screenHeight}
+                  width={(width / 640) * screenWidth}
+                  height={(height / 480) * screenHeight}
+                  stroke="red"
+                  strokeWidth="2"
+                  fill="none"
+                />
+                <SvgText
+                  x={(x / 640) * screenWidth}
+                  y={(y / 480) * screenHeight - 5}
+                  fill="red"
+                  fontSize="16"
+                  fontWeight="bold"
+                >
+                  {`${prediction.class} (${Math.round(prediction.score * 100)}%)`}
+                </SvgText>
+              </React.Fragment>
+            );
+          })}
+        </Svg>
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.button} onPress={toggleCameraFacing}>
             <Text style={styles.text}>Flip Camera</Text>
@@ -68,17 +97,8 @@ export default function App() {
           </TouchableOpacity>
         </View>
       </CameraView>
-
-      <View style={styles.predictions}>
-        {predictions.map((prediction, index) => (
-          <Text key={index} style={styles.predictionText}>
-            {prediction.class} ({Math.round(prediction.score * 100)}%)
-          </Text>
-        ))}
-      </View>
     </View>
   );
-
 }
 
 const styles = StyleSheet.create({
@@ -86,12 +106,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
   },
-  message: {
-    textAlign: 'center',
-    paddingBottom: 10,
-  },
   camera: {
     flex: 1,
+  },
+  overlay: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
   },
   buttonContainer: {
     flex: 1,
@@ -108,18 +129,5 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: 'white',
-  },
-  predictions: {
-    position: 'absolute',
-    bottom: 20,
-    left: 10,
-    right: 10,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    padding: 10,
-    borderRadius: 10,
-  },
-  predictionText: {
-    color: '#fff',
-    fontSize: 16,
   },
 });
