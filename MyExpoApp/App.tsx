@@ -53,10 +53,6 @@ export default function App() {
     }
   };
 
-  function toggleCameraFacing() {
-    setFacing((current) => (current === 'back' ? 'front' : 'back'));
-  }
-
   return (
     <View style={styles.container}>
       <CameraView ref={cameraRef} style={styles.camera} facing={facing}>
@@ -64,11 +60,17 @@ export default function App() {
           {predictions.map((prediction, index) => {
             const [x, y, width, height] = prediction.bbox;
 
+            const adjustedX = facing === 'back'
+              ? screenWidth - (x / 640) * screenWidth - (width / 640) * screenWidth
+              : (x / 640) * screenWidth;
+
+            const adjustedY = (y / 480) * screenHeight;
+
             return (
               <React.Fragment key={index}>
                 <Rect
-                  x={(x / 640) * screenWidth}
-                  y={(y / 480) * screenHeight}
+                  x={adjustedX}
+                  y={adjustedY}
                   width={(width / 640) * screenWidth}
                   height={(height / 480) * screenHeight}
                   stroke="red"
@@ -76,8 +78,8 @@ export default function App() {
                   fill="none"
                 />
                 <SvgText
-                  x={(x / 640) * screenWidth}
-                  y={(y / 480) * screenHeight - 5}
+                  x={adjustedX}
+                  y={adjustedY - 5}
                   fill="red"
                   fontSize="16"
                   fontWeight="bold"
@@ -88,10 +90,8 @@ export default function App() {
             );
           })}
         </Svg>
+
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.button} onPress={toggleCameraFacing}>
-            <Text style={styles.text}>Flip Camera</Text>
-          </TouchableOpacity>
           <TouchableOpacity style={styles.button} onPress={detectObjects}>
             <Text style={styles.text}>Detecteer Objecten</Text>
           </TouchableOpacity>
