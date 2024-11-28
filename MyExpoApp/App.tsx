@@ -2,11 +2,13 @@ import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Dimensions } from 'react-native';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import * as tf from '@tensorflow/tfjs';
-import * as cocoSsd from '@tensorflow-models/coco-ssd';
+import '@tensorflow/tfjs-react-native';
 import Svg, { Rect, Text as SvgText } from 'react-native-svg';
+import * as FileSystem from 'expo-file-system';
+import { bundleResourceIO } from '@tensorflow/tfjs-react-native';
 
 export default function App() {
-  const [model, setModel] = useState<cocoSsd.ObjectDetection | null>(null);
+  const [model, setModel] = useState<any>(null);
   const [predictions, setPredictions] = useState<any[]>([]);
   const [facing, setFacing] = useState<CameraType>('back');
   const [permission, requestPermission] = useCameraPermissions();
@@ -18,17 +20,17 @@ export default function App() {
   useEffect(() => {
     (async () => {
       await tf.ready();
-      const loadedModel = await cocoSsd.load();
-      setModel(loadedModel);
+      const modelJson  = require('./assets/tfjs_model/model.json');
+      const modelWeights = require('./assets/tfjs_model/group1-shard1of1.bin');
+      const model = await tf.loadLayersModel(bundleResourceIO(modelJson, modelWeights));
+      setModel(model);
     })();
   }, []);
 
   const detectObjects = async () => {
     if (cameraRef.current && model) {
       try {
-        const photo = await cameraRef.current.takePictureAsync({
-          skipProcessing: true,
-        });
+        const photo = await cameraRef.current.takePictureAsync({ skipProcessing: true });
 
         const image = new Image();
         image.src = photo.uri;
@@ -42,7 +44,6 @@ export default function App() {
           ctx.drawImage(image, 0, 0);
 
           const imageTensor = tf.browser.fromPixels(canvas);
-
           const predictions = await model.detect(imageTensor);
           setPredictions(predictions);
           console.log('Detected objects:', predictions);
@@ -73,15 +74,16 @@ export default function App() {
                   y={adjustedY}
                   width={(width / 640) * screenWidth}
                   height={(height / 480) * screenHeight}
-                  stroke="red"
-                  strokeWidth="2"
+                  stroke="#00FF00"
+                  strokeWidth="3"
                   fill="none"
+                  rx="4"
                 />
                 <SvgText
                   x={adjustedX}
-                  y={adjustedY - 5}
-                  fill="red"
-                  fontSize="16"
+                  y={adjustedY - 10}
+                  fill="#00FF00"
+                  fontSize="14"
                   fontWeight="bold"
                 >
                   {`${prediction.class} (${Math.round(prediction.score * 100)}%)`}
@@ -92,8 +94,8 @@ export default function App() {
         </Svg>
 
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.button} onPress={detectObjects}>
-            <Text style={styles.text}>Detecteer Objecten</Text>
+          <TouchableOpacity style={styles.detectButton} onPress={detectObjects}>
+            <Text style={styles.buttonText}>Detecteer Objecten</Text>
           </TouchableOpacity>
         </View>
       </CameraView>
@@ -104,7 +106,7 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    backgroundColor: '#1E1E1E',
   },
   camera: {
     flex: 1,
@@ -115,19 +117,25 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   buttonContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    backgroundColor: 'transparent',
-    margin: 64,
+    position: 'absolute',
+    bottom: 20,
+    alignSelf: 'center',
   },
-  button: {
-    flex: 1,
-    alignSelf: 'flex-end',
-    alignItems: 'center',
+  detectButton: {
+    backgroundColor: '#6200EE',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 25,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
   },
-  text: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: 'white',
+  buttonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '600',
+    textAlign: 'center',
   },
 });
