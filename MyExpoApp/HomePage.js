@@ -28,6 +28,13 @@ export default function HomePage({ navigation }) {
                         <MaterialIcons name="photo-library" size={24} color="#FFFFFF" />
                         <Text style={styles.buttonText}>Import Image</Text>
                     </TouchableOpacity>
+                    <TouchableOpacity
+                        style={styles.button}
+                        onPress={() => navigation.navigate('Game')}
+                    >
+                        <MaterialIcons name="sports-esports" size={24} color="#FFFFFF" />
+                        <Text style={styles.buttonText}>Play the detective game</Text>
+                    </TouchableOpacity>
                 </View>
             </SafeAreaView>
         </ImageBackground>
@@ -41,7 +48,7 @@ const styles = StyleSheet.create({
     },
     container: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.5)', // Semi-transparent overlay
+        backgroundColor: 'rgba(0,0,0,0.5)',
     },
     content: {
         flex: 1,

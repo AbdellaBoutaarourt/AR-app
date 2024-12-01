@@ -4,6 +4,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import HomePage from './HomePage';
 import CameraPage from './CameraPage';
 import ImportImagePage from './ImagePage';
+import ImageGamePage from './GamePage';
 
 const Stack = createStackNavigator();
 
@@ -14,6 +15,8 @@ export default function App() {
         <Stack.Screen name="Home" component={HomePage} />
         <Stack.Screen name="Camera" component={CameraPage} />
         <Stack.Screen name="Import Image" component={ImportImagePage} />
+        <Stack.Screen name="Game" component={ImageGamePage} />
+
       </Stack.Navigator>
     </NavigationContainer>
   );
