@@ -97,7 +97,7 @@ export default function ImageGamePage() {
 
     return (
         <ImageBackground
-            source={require('./assets/bg.png')}
+            source={require('../assets/bg.png')}
             style={styles.backgroundImage}
         >
             <SafeAreaView style={styles.container}>

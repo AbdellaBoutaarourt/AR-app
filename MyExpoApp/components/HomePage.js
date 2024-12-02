@@ -5,7 +5,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 export default function HomePage({ navigation }) {
     return (
         <ImageBackground
-            source={require('./assets/bg.png')}
+            source={require('../assets/bg.png')}
             style={styles.backgroundImage}
         >
             <SafeAreaView style={styles.container}>

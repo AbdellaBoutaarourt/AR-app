@@ -1,10 +1,10 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import HomePage from './HomePage';
-import CameraPage from './CameraPage';
-import ImportImagePage from './ImagePage';
-import ImageGamePage from './GamePage';
+import HomePage from './components/HomePage';
+import CameraPage from './components/CameraPage';
+import ImportImagePage from './components/ImagePage';
+import ImageGamePage from './components/GamePage';
 
 const Stack = createStackNavigator();
 
